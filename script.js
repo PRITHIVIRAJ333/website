@@ -1,104 +1,413 @@
-/* =====================================================
-                    INTRO 4 SECONDS
-===================================================== */
+/* =========================================================
+   SKY OF WINGS
+   VANILLA JAVASCRIPT
+========================================================= */
 
-window.addEventListener("load", function () {
+
+/* =========================================================
+   INTRO - APPROX 4 SECONDS
+========================================================= */
+
+window.addEventListener("load", () => {
 
     const intro =
         document.getElementById("intro");
 
+    setTimeout(() => {
 
-    setTimeout(function () {
-
-        intro.classList.add(
-            "intro-hide"
-        );
-
-
-        setTimeout(function () {
-
-            intro.style.display =
-                "none";
-
-        }, 1000);
+        intro.classList.add("hide");
 
     }, 4000);
 
 });
 
 
+/* =========================================================
+   SPACE WARP ENGINE
+========================================================= */
 
-/* =====================================================
-                    PHOTO ERROR
-===================================================== */
+const canvas =
+    document.getElementById("spaceCanvas");
 
-function showPhotoError() {
+const ctx =
+    canvas.getContext("2d");
 
-    const photo =
-        document.getElementById(
-            "profilePhoto"
-        );
+let width;
+let height;
 
+let stars = [];
 
-    const error =
-        document.getElementById(
-            "photoError"
-        );
-
-
-    photo.style.display =
-        "none";
+const STAR_COUNT =
+    window.innerWidth < 600
+        ? 420
+        : 850;
 
 
-    error.style.display =
-        "flex";
+/* ---------------------------------------------------------
+   RESIZE
+--------------------------------------------------------- */
 
+function resizeCanvas() {
+
+    width =
+        canvas.width =
+        window.innerWidth;
+
+    height =
+        canvas.height =
+        window.innerHeight;
+}
+
+resizeCanvas();
+
+window.addEventListener(
+    "resize",
+    resizeCanvas
+);
+
+
+/* =========================================================
+   STAR CREATION
+========================================================= */
+
+function createStar(
+    initial = false
+) {
+
+    const angle =
+        Math.random() *
+        Math.PI *
+        2;
+
+    const distance =
+        initial
+            ? Math.random() * 1600
+            : Math.random() * 120;
+
+    return {
+
+        x:
+            Math.cos(angle) *
+            distance,
+
+        y:
+            Math.sin(angle) *
+            distance,
+
+        z:
+            initial
+                ? Math.random() * 1600 + 1
+                : 1600,
+
+        pz: 1600,
+
+        size:
+            Math.random() *
+            1.8 + .3,
+
+        speed:
+            Math.random() *
+            8 + 5
+
+    };
 }
 
 
+for (
+    let i = 0;
+    i < STAR_COUNT;
+    i++
+) {
 
-/* =====================================================
-                    MOBILE MENU
-===================================================== */
+    stars.push(
+        createStar(true)
+    );
+}
 
-const menuBtn =
-    document.getElementById(
-        "menuBtn"
+
+/* =========================================================
+   WARP SPEED ANIMATION
+========================================================= */
+
+function animateSpace() {
+
+    ctx.fillStyle =
+        "rgba(1,1,6,0.35)";
+
+    ctx.fillRect(
+        0,
+        0,
+        width,
+        height
     );
 
 
-const nav =
-    document.getElementById(
-        "nav"
+    /* CENTER ORIGIN */
+
+    const centerX =
+        width / 2;
+
+    const centerY =
+        height / 2;
+
+
+    /* SUBTLE CENTRAL GLOW */
+
+    const glow =
+        ctx.createRadialGradient(
+            centerX,
+            centerY,
+            0,
+            centerX,
+            centerY,
+            Math.max(width, height) * .5
+        );
+
+    glow.addColorStop(
+        0,
+        "rgba(99,45,180,0.045)"
+    );
+
+    glow.addColorStop(
+        .4,
+        "rgba(55,25,100,0.02)"
+    );
+
+    glow.addColorStop(
+        1,
+        "rgba(0,0,0,0)"
+    );
+
+    ctx.fillStyle = glow;
+
+    ctx.fillRect(
+        0,
+        0,
+        width,
+        height
     );
 
 
-if (menuBtn) {
+    /* STARS */
 
-    menuBtn.addEventListener(
-        "click",
-        function () {
+    for (
+        let i = 0;
+        i < stars.length;
+        i++
+    ) {
 
-            nav.classList.toggle(
-                "open"
+        const star =
+            stars[i];
+
+        star.pz =
+            star.z;
+
+        star.z -=
+            star.speed;
+
+
+        /* RESET WHEN STAR PASSES CAMERA */
+
+        if (
+            star.z <= 1
+        ) {
+
+            stars[i] =
+                createStar(false);
+
+            continue;
+        }
+
+
+        /* PERSPECTIVE */
+
+        const sx =
+            centerX +
+            (star.x / star.z) *
+            width;
+
+        const sy =
+            centerY +
+            (star.y / star.z) *
+            height;
+
+
+        const px =
+            centerX +
+            (star.x / star.pz) *
+            width;
+
+        const py =
+            centerY +
+            (star.y / star.pz) *
+            height;
+
+
+        /* SCREEN BOUNDARY RESET */
+
+        if (
+            sx < -100 ||
+            sx > width + 100 ||
+            sy < -100 ||
+            sy > height + 100
+        ) {
+
+            stars[i] =
+                createStar(false);
+
+            continue;
+        }
+
+
+        const alpha =
+            Math.min(
+                1,
+                (1600 - star.z) /
+                900
             );
 
-        }
+
+        const lineWidth =
+            Math.max(
+                .3,
+                (1600 - star.z) / 500
+            );
+
+
+        /* MOTION STREAK */
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            px,
+            py
+        );
+
+        ctx.lineTo(
+            sx,
+            sy
+        );
+
+        ctx.strokeStyle =
+            `rgba(235,225,255,${alpha * .55})`;
+
+        ctx.lineWidth =
+            lineWidth;
+
+        ctx.stroke();
+
+
+        /* STAR CORE */
+
+        const radius =
+            Math.max(
+                .4,
+                (1 - star.z / 1600) *
+                star.size *
+                2
+            );
+
+        ctx.beginPath();
+
+        ctx.arc(
+            sx,
+            sy,
+            radius,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fillStyle =
+            `rgba(255,255,255,${alpha})`;
+
+        ctx.fill();
+
+    }
+
+
+    requestAnimationFrame(
+        animateSpace
+    );
+}
+
+animateSpace();
+
+
+/* =========================================================
+   MOUSE FOLLOW GLOW
+========================================================= */
+
+const mouseGlow =
+    document.querySelector(
+        ".mouse-glow"
     );
 
-}
+let mouseX =
+    window.innerWidth / 2;
+
+let mouseY =
+    window.innerHeight / 2;
+
+window.addEventListener(
+    "mousemove",
+    event => {
+
+        mouseX =
+            event.clientX;
+
+        mouseY =
+            event.clientY;
+
+        mouseGlow.style.left =
+            mouseX + "px";
+
+        mouseGlow.style.top =
+            mouseY + "px";
+
+    },
+    { passive: true }
+);
+
+
+/* =========================================================
+   MOBILE NAVIGATION
+========================================================= */
+
+const hamburger =
+    document.getElementById(
+        "hamburger"
+    );
+
+const navMenu =
+    document.getElementById(
+        "navMenu"
+    );
+
+
+hamburger.addEventListener(
+    "click",
+    () => {
+
+        navMenu.classList.toggle(
+            "active"
+        );
+
+    }
+);
 
 
 document
-    .querySelectorAll("#nav a")
-    .forEach(function (link) {
+    .querySelectorAll(
+        "#navMenu a"
+    )
+    .forEach(link => {
 
         link.addEventListener(
             "click",
-            function () {
+            () => {
 
-                nav.classList.remove(
-                    "open"
+                navMenu.classList.remove(
+                    "active"
                 );
 
             }
@@ -107,277 +416,30 @@ document
     });
 
 
-
-/* =====================================================
-                3D PHOTO SCROLL
-===================================================== */
-
-const photoCard =
-    document.getElementById(
-        "photoCard"
-    );
-
-
-const hero =
-    document.getElementById(
-        "home"
-    );
-
-
-function animatePhoto() {
-
-    if (
-        !photoCard ||
-        !hero
-    ) {
-
-        return;
-
-    }
-
-
-    if (
-        window.innerWidth <= 700
-    ) {
-
-        return;
-
-    }
-
-
-    const rect =
-        hero.getBoundingClientRect();
-
-
-    const maxScroll =
-        hero.offsetHeight -
-        window.innerHeight;
-
-
-    let progress =
-        -rect.top /
-        maxScroll;
-
-
-    progress =
-        Math.max(
-            0,
-            Math.min(
-                1,
-                progress
-            )
-        );
-
-
-    /*
-        START:
-
-        CENTER / BIG
-
-        ↓
-
-        ROTATE
-
-        ↓
-
-        MOVE UP
-
-        ↓
-
-        MOVE RIGHT
-
-        ↓
-
-        SMALL
-    */
-
-
-    const rotateY =
-        progress * 180;
-
-
-    const rotateX =
-        progress * 30;
-
-
-    const rotateZ =
-        progress * 12;
-
-
-    const moveX =
-        progress * 32;
-
-
-    const moveY =
-        progress * -28;
-
-
-    const scale =
-        1 -
-        progress * .60;
-
-
-    const depth =
-        progress * 150;
-
-
-    photoCard.style.transform = `
-
-        translate3d(
-            ${moveX}vw,
-            ${moveY}vh,
-            ${depth}px
-        )
-
-        rotateX(
-            ${rotateX}deg
-        )
-
-        rotateY(
-            ${rotateY}deg
-        )
-
-        rotateZ(
-            ${rotateZ}deg
-        )
-
-        scale(
-            ${scale}
-        )
-
-    `;
-
-}
-
-
-window.addEventListener(
-    "scroll",
-    animatePhoto,
-    {
-        passive: true
-    }
-);
-
-
-
-/* =====================================================
-                    MOBILE PHOTO
-===================================================== */
-
-function mobilePhoto() {
-
-    if (
-        !photoCard ||
-        !hero ||
-        window.innerWidth > 700
-    ) {
-
-        return;
-
-    }
-
-
-    const rect =
-        hero.getBoundingClientRect();
-
-
-    const maxScroll =
-        hero.offsetHeight -
-        window.innerHeight;
-
-
-    let progress =
-        -rect.top /
-        maxScroll;
-
-
-    progress =
-        Math.max(
-            0,
-            Math.min(
-                1,
-                progress
-            )
-        );
-
-
-    const rotate =
-        progress * 180;
-
-
-    const moveX =
-        progress * 20;
-
-
-    const moveY =
-        progress * -12;
-
-
-    const scale =
-        1 -
-        progress * .35;
-
-
-    photoCard.style.transform = `
-
-        translate(
-            ${moveX}vw,
-            ${moveY}vh
-        )
-
-        rotateY(
-            ${rotate}deg
-        )
-
-        rotateZ(
-            ${progress * 10}deg
-        )
-
-        scale(
-            ${scale}
-        )
-
-    `;
-
-}
-
-
-window.addEventListener(
-    "scroll",
-    mobilePhoto,
-    {
-        passive: true
-    }
-);
-
-
-
-/* =====================================================
-                SECTION REVEAL
-===================================================== */
+/* =========================================================
+   SCROLL REVEAL
+========================================================= */
 
 const revealElements =
     document.querySelectorAll(
-        ".reveal"
+        ".reveal, .reveal-left, .reveal-right"
     );
 
 
-const observer =
+const revealObserver =
     new IntersectionObserver(
-        function (entries) {
+        entries => {
 
             entries.forEach(
-                function (entry) {
+                entry => {
 
                     if (
                         entry.isIntersecting
                     ) {
 
-                        entry.target
-                            .classList
-                            .add(
-                                "visible"
-                            );
+                        entry.target.classList.add(
+                            "visible"
+                        );
 
                     }
 
@@ -392,9 +454,9 @@ const observer =
 
 
 revealElements.forEach(
-    function (element) {
+    element => {
 
-        observer.observe(
+        revealObserver.observe(
             element
         );
 
@@ -402,95 +464,469 @@ revealElements.forEach(
 );
 
 
+/* =========================================================
+   3D TILT CARDS
+========================================================= */
 
-/* =====================================================
-                    3D CARD TILT
-===================================================== */
-
-const cards =
+const tiltCards =
     document.querySelectorAll(
-        ".learning-card, .certificate-card"
+        ".tilt-card"
     );
 
 
-cards.forEach(
-    function (card) {
+tiltCards.forEach(card => {
+
+    card.addEventListener(
+        "mousemove",
+        event => {
+
+            const rect =
+                card.getBoundingClientRect();
+
+            const x =
+                event.clientX -
+                rect.left;
+
+            const y =
+                event.clientY -
+                rect.top;
+
+            const centerX =
+                rect.width / 2;
+
+            const centerY =
+                rect.height / 2;
+
+            const rotateY =
+                ((x - centerX) /
+                    centerX) * 8;
+
+            const rotateX =
+                -((y - centerY) /
+                    centerY) * 8;
 
 
-        card.addEventListener(
-            "mousemove",
-            function (event) {
+            card.style.transform =
+                `perspective(900px)
+                 rotateX(${rotateX}deg)
+                 rotateY(${rotateY}deg)
+                 translateY(-5px)`;
+
+        }
+    );
 
 
-                const rect =
-                    card.getBoundingClientRect();
+    card.addEventListener(
+        "mouseleave",
+        () => {
+
+            card.style.transform =
+                "";
+
+        }
+    );
+
+});
 
 
-                const x =
-                    event.clientX -
-                    rect.left;
+/* =========================================================
+   HERO PHOTO SCROLL TRANSFORMATION
+========================================================= */
+
+const heroPhoto =
+    document.querySelector(
+        ".hero-photo"
+    );
+
+const photoFrame =
+    document.querySelector(
+        ".photo-frame"
+    );
+
+const heroContent =
+    document.querySelector(
+        ".hero-content"
+    );
+
+const floatingProfile =
+    document.getElementById(
+        "floatingProfile"
+    );
+
+let currentScroll =
+    window.scrollY;
+
+let targetScroll =
+    window.scrollY;
 
 
-                const y =
-                    event.clientY -
-                    rect.top;
+/* ---------------------------------------------------------
+   GET HERO PROGRESS
+--------------------------------------------------------- */
+
+function getHeroProgress() {
+
+    const heroHeight =
+        window.innerHeight;
+
+    return Math.max(
+        0,
+        Math.min(
+            1,
+            window.scrollY /
+            (heroHeight * .9)
+        )
+    );
+
+}
 
 
-                const centerX =
-                    rect.width / 2;
+/* =========================================================
+   REQUEST ANIMATION FRAME SCROLL ENGINE
+========================================================= */
+
+window.addEventListener(
+    "scroll",
+    () => {
+
+        targetScroll =
+            window.scrollY;
+
+    },
+    { passive: true }
+);
 
 
-                const centerY =
-                    rect.height / 2;
+function updateScrollAnimation() {
+
+    currentScroll +=
+        (targetScroll -
+            currentScroll) *
+        .1;
 
 
-                const rotateX =
-                    (y - centerY) / 20;
+    const heroHeight =
+        window.innerHeight;
 
-
-                const rotateY =
-                    (centerX - x) / 20;
-
-
-                card.style.transform = `
-
-                    perspective(900px)
-
-                    rotateX(
-                        ${rotateX}deg
-                    )
-
-                    rotateY(
-                        ${rotateY}deg
-                    )
-
-                    translateY(-8px)
-
-                `;
-
-            }
+    const progress =
+        Math.max(
+            0,
+            Math.min(
+                1,
+                currentScroll /
+                (heroHeight * .9)
+            )
         );
 
 
-        card.addEventListener(
-            "mouseleave",
-            function () {
+    /* -----------------------------------------------------
+       PHOTO TRANSFORMATION
+    ----------------------------------------------------- */
 
-                card.style.transform =
-                    "";
+    const rotate =
+        progress * 80;
 
-            }
+    const translateX =
+        progress * 45;
+
+    const translateY =
+        -progress * 160;
+
+    const scale =
+        1 -
+        progress * .62;
+
+
+    if (heroPhoto) {
+
+        heroPhoto.style.transform =
+            `translate3d(
+                ${translateX}px,
+                ${translateY}px,
+                0
+            )
+            rotateY(${rotate}deg)
+            scale(${scale})`;
+
+    }
+
+
+    /* -----------------------------------------------------
+       PHOTO FRAME DEPTH
+    ----------------------------------------------------- */
+
+    if (photoFrame) {
+
+        photoFrame.style.transform =
+            `rotateZ(
+                ${progress * 15}deg
+            )
+            translateZ(
+                ${progress * 80}px
+            )`;
+
+    }
+
+
+    /* -----------------------------------------------------
+       HERO TEXT
+    ----------------------------------------------------- */
+
+    if (heroContent) {
+
+        heroContent.style.transform =
+            `translate3d(
+                0,
+                ${progress * -80}px,
+                0
+            )
+            scale(
+                ${1 - progress * .08}
+            )`;
+
+        heroContent.style.opacity =
+            1 -
+            progress * .25;
+    }
+
+
+    /* -----------------------------------------------------
+       FLOATING PROFILE
+    ----------------------------------------------------- */
+
+    if (
+        progress > .65
+    ) {
+
+        floatingProfile.classList.add(
+            "active"
+        );
+
+    } else {
+
+        floatingProfile.classList.remove(
+            "active"
+        );
+
+    }
+
+
+    requestAnimationFrame(
+        updateScrollAnimation
+    );
+}
+
+updateScrollAnimation();
+
+
+/* =========================================================
+   SECTION ACTIVE NAV
+========================================================= */
+
+const sections =
+    document.querySelectorAll(
+        "main section[id]"
+    );
+
+const navLinks =
+    document.querySelectorAll(
+        ".navbar nav a"
+    );
+
+
+const navObserver =
+    new IntersectionObserver(
+        entries => {
+
+            entries.forEach(
+                entry => {
+
+                    if (
+                        entry.isIntersecting
+                    ) {
+
+                        const id =
+                            entry.target.id;
+
+                        navLinks.forEach(
+                            link => {
+
+                                link.classList.remove(
+                                    "active"
+                                );
+
+                                if (
+                                    link.getAttribute(
+                                        "href"
+                                    ) ===
+                                    `#${id}`
+                                ) {
+
+                                    link.classList.add(
+                                        "active"
+                                    );
+
+                                }
+
+                            }
+                        );
+
+                    }
+
+                }
+            );
+
+        },
+        {
+            threshold: .55
+        }
+    );
+
+
+sections.forEach(
+    section => {
+
+        navObserver.observe(
+            section
         );
 
     }
 );
 
 
+/* =========================================================
+   PARALLAX SECTION ELEMENTS
+========================================================= */
 
-/* =====================================================
-                    START
-===================================================== */
+const parallaxElements =
+    document.querySelectorAll(
+        ".section-heading, .glass-card"
+    );
 
-animatePhoto();
 
-mobilePhoto();
+let ticking =
+    false;
+
+
+window.addEventListener(
+    "scroll",
+    () => {
+
+        if (!ticking) {
+
+            window.requestAnimationFrame(
+                () => {
+
+                    const viewport =
+                        window.innerHeight;
+
+                    parallaxElements.forEach(
+                        element => {
+
+                            const rect =
+                                element.getBoundingClientRect();
+
+                            const center =
+                                rect.top +
+                                rect.height / 2;
+
+                            const distance =
+                                center -
+                                viewport / 2;
+
+                            if (
+                                Math.abs(distance) <
+                                viewport
+                            ) {
+
+                                const movement =
+                                    distance *
+                                    -0.015;
+
+                                element.style.setProperty(
+                                    "--parallax-y",
+                                    `${movement}px`
+                                );
+
+                            }
+
+                        }
+                    );
+
+                    ticking =
+                        false;
+
+                }
+            );
+
+            ticking =
+                true;
+        }
+
+    },
+    { passive: true }
+);
+
+
+/* =========================================================
+   PDF ERROR HANDLING
+========================================================= */
+
+document
+    .querySelectorAll(
+        "iframe"
+    )
+    .forEach(
+        frame => {
+
+            frame.addEventListener(
+                "error",
+                () => {
+
+                    frame.style.background =
+                        "#09050f";
+
+                }
+            );
+
+        }
+    );
+
+
+/* =========================================================
+   KEYBOARD ESCAPE - CLOSE MOBILE NAV
+========================================================= */
+
+document.addEventListener(
+    "keydown",
+    event => {
+
+        if (
+            event.key === "Escape"
+        ) {
+
+            navMenu.classList.remove(
+                "active"
+            );
+
+        }
+
+    }
+);
+
+
+/* =========================================================
+   INITIAL PAGE POSITION
+========================================================= */
+
+window.addEventListener(
+    "load",
+    () => {
+
+        window.scrollTo(
+            0,
+            0
+        );
+
+    }
+);
