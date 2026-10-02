@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        Speech Emotions Prediction
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+</head>
+
+
+<body>
+
+
+<div class="background">
+
+    <div class="circle circle1"></div>
+
+    <div class="circle circle2"></div>
+
+    <div class="circle circle3"></div>
+
+</div>
+
+
+<main class="container">
+
+
+<section class="card">
+
+
+<div class="icon">
+    🎙️
+</div>
+
+
+<h1>
+    SPEECH EMOTIONS PREDICTION
+</h1>
+
+
+<p class="subtitle">
+
+    Upload your voice and let
+    Deep Learning predict the emotion.
+
+</p>
+
+
+<div
+    class="upload-box"
+    id="uploadBox"
+>
+
+
+<div class="upload-icon">
+    🎵
+</div>
+
+
+<h2>
+    Upload Your Voice
+</h2>
+
+
+<p>
+    WAV, MP3, OGG, M4A or FLAC
+</p>
+
+
+<input
+    type="file"
+    id="audioFile"
+    accept=".wav,.mp3,.ogg,.m4a,.flac,audio/*"
+    hidden
+>
+
+
+<button
+    class="choose-btn"
+    id="chooseBtn"
+>
+
+    📁 Choose Audio File
+
+</button>
+
+
+<p
+    id="fileName"
+    class="file-name"
+>
+
+    No file selected
+
+</p>
+
+
+</div>
+
+
+<audio
+    id="audioPlayer"
+    controls
+    hidden
+>
+</audio>
+
+
+<button
+    class="predict-btn"
+    id="predictBtn"
+>
+
+    🔍 PREDICT EMOTION
+
+</button>
+
+
+<div
+    id="loading"
+    class="loading"
+    hidden
+>
+
+    <div class="spinner"></div>
+
+    <p>
+        Analyzing your voice...
+    </p>
+
+</div>
+
+
+<div
+    id="message"
+    class="message"
+>
+</div>
+
+
+<div
+    id="result"
+    class="result"
+    hidden
+>
+
+
+<p class="result-title">
+
+    PREDICTED EMOTION
+
+</p>
+
+
+<div
+    id="emotionEmoji"
+    class="emotion-emoji"
+>
+
+    😊
+
+</div>
+
+
+<h2 id="emotionText">
+
+    HAPPY
+
+</h2>
+
+
+<div class="confidence-area">
+
+
+<div class="confidence-label">
+
+    <span>
+        Confidence
+    </span>
+
+    <span id="confidenceText">
+        0%
+    </span>
+
+</div>
+
+
+<div class="progress">
+
+    <div
+        id="progressBar"
+        class="progress-bar"
+    ></div>
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+</section>
+
+
+<footer>
+
+    <p>
+        Deep Learning Based Speech Emotion Recognition
+    </p>
+
+</footer>
+
+
+</main>
+
+
+<script
+    src="{{ url_for('static', filename='script.js') }}"
+></script>
+
+
+</body>
+
+</html>
